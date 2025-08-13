@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Live Production Dashboard</title>
+    <title>Production Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -13,6 +13,9 @@
         .modal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
         .details-table th, .details-table td { padding: 0.75rem; text-align: center; }
         .details-table tbody tr:nth-child(odd) { background-color: #f9fafb; }
+        .stringer-card { background: linear-gradient(135deg, #f3f4f6 60%, #e0e7ff 100%);}
+        .summary-card { background: linear-gradient(135deg, #d1fae5 60%, #a7f3d0 100%);}
+        .stringer-bar-container { min-height: 250px; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -41,14 +44,12 @@
             </div>
         </header>
 
-        <main id="dashboard-content">
-            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
-                <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-blue-500"><p class="text-sm text-gray-500 font-medium">Total Modules (Shift)</p><p id="total-modules" class="text-3xl font-bold text-gray-800 mt-1">0</p></div>
-                <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-green-500"><p class="text-sm text-gray-500 font-medium">Modules (Till Now)</p><p id="modules-till-now" class="text-3xl font-bold text-gray-800 mt-1">0</p></div>
-                <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-yellow-500"><p class="text-sm text-gray-500 font-medium">Overall Performance</p><p class="text-3xl font-bold text-gray-800 mt-1"><span id="overall-performance">0.0</span><span class="text-xl ml-1 text-gray-600">%</span></p></div>
-                <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-purple-500"><p class="text-sm text-gray-500 font-medium">Total Strings (OK/NG)</p><p id="total-strings" class="text-3xl font-bold text-gray-800 mt-1">0 / 0</p></div>
-            </section>
+        <!-- Summary Card -->
+        <section id="summary-section" class="mb-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+            <!-- Populated by JS -->
+        </section>
 
+        <main id="dashboard-content">
             <section class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
                     <h2 class="text-xl font-semibold mb-4 text-gray-700">Overall Hourly Production</h2>
@@ -78,6 +79,38 @@
                     <table id="details-table-container" class="w-full text-sm details-table"></table>
                 </div>
             </section>
+
+            <!-- Stringer Hourly Graphs -->
+            <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mt-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Stringer Hourly Modules & NG Trend</h2>
+                <div id="stringer-graphs" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <!-- 6 Cards with Canvas for Stringer Graphs -->
+                    <div class="stringer-card p-4 rounded-lg shadow border flex flex-col items-center stringer-bar-container">
+                        <div class="font-bold text-blue-800 mb-1">Stringer 1</div>
+                        <canvas id="stringerGraph1" height="170"></canvas>
+                    </div>
+                    <div class="stringer-card p-4 rounded-lg shadow border flex flex-col items-center stringer-bar-container">
+                        <div class="font-bold text-blue-800 mb-1">Stringer 2</div>
+                        <canvas id="stringerGraph2" height="170"></canvas>
+                    </div>
+                    <div class="stringer-card p-4 rounded-lg shadow border flex flex-col items-center stringer-bar-container">
+                        <div class="font-bold text-blue-800 mb-1">Stringer 3</div>
+                        <canvas id="stringerGraph3" height="170"></canvas>
+                    </div>
+                    <div class="stringer-card p-4 rounded-lg shadow border flex flex-col items-center stringer-bar-container">
+                        <div class="font-bold text-blue-800 mb-1">Stringer 4</div>
+                        <canvas id="stringerGraph4" height="170"></canvas>
+                    </div>
+                    <div class="stringer-card p-4 rounded-lg shadow border flex flex-col items-center stringer-bar-container">
+                        <div class="font-bold text-blue-800 mb-1">Stringer 5</div>
+                        <canvas id="stringerGraph5" height="170"></canvas>
+                    </div>
+                    <div class="stringer-card p-4 rounded-lg shadow border flex flex-col items-center stringer-bar-container">
+                        <div class="font-bold text-blue-800 mb-1">Stringer 6</div>
+                        <canvas id="stringerGraph6" height="170"></canvas>
+                    </div>
+                </div>
+            </section>
         </main>
         
         <div id="loading-overlay" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
@@ -97,11 +130,10 @@
             <div id="modal-body" class="p-6 overflow-y-auto"></div>
         </div>
     </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot, updateDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, setDoc, onSnapshot, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA2FZJqQe3wC6o9gAQpB1rVIWeWn_CHlmY",
@@ -126,10 +158,7 @@ const DOM = {
     dateSelector: document.getElementById('date-selector'),
     shiftSelector: document.getElementById('shift-selector'),
     resetButton: document.getElementById('reset-button'),
-    totalModules: document.getElementById('total-modules'),
-    modulesTillNow: document.getElementById('modules-till-now'),
-    overallPerformance: document.getElementById('overall-performance'),
-    totalStrings: document.getElementById('total-strings'),
+    summarySection: document.getElementById('summary-section'),
     stringerGrid: document.getElementById('stringer-grid'),
     submitButton: document.getElementById('submit-button'),
     submitMessage: document.getElementById('submit-message'),
@@ -167,11 +196,17 @@ function getShiftInfo(date) {
     return { shift, dateString };
 }
 
+// Ensure correct order for shift 3: [22,23,0,1,2,3,4,5]
 function getShiftHours(shift) {
     if (shift === 1) return [6, 7, 8, 9, 10, 11, 12, 13];
     if (shift === 2) return [14, 15, 16, 17, 18, 19, 20, 21];
     if (shift === 3) return [22, 23, 0, 1, 2, 3, 4, 5];
     return [];
+}
+
+function keyToHour(key) {
+    if (key.startsWith('_')) return parseInt(key.slice(1), 10);
+    return parseInt(key, 10);
 }
 
 function getEmptyShiftData(shift, dateString) {
@@ -197,24 +232,23 @@ function getEmptyShiftData(shift, dateString) {
     };
 }
 
-// Normalizing hourlyData for UI AND tracking Firestore key for each hour
-function normalizeHourlyDataWithKeys(hourlyData) {
-    if (!hourlyData || typeof hourlyData !== "object") return [];
-    return Object.entries(hourlyData)
-        .map(([key, value]) => ({ ...value, _key: key }))
-        .sort((a, b) => Number(a.hour) - Number(b.hour));
-}
-
-// For merging Firestore doc with defaults
 function mergeWithEmptyShift(shift, dateString, firestoreData) {
     const emptyData = getEmptyShiftData(shift, dateString);
     const result = {...firestoreData.hourlyData || {}};
     Object.keys(emptyData.hourlyData).forEach(hourKey => {
         if (!result[hourKey]) {
             result[hourKey] = emptyData.hourlyData[hourKey];
+        } else {
+            if (result[hourKey].hour === undefined) {
+                result[hourKey].hour = keyToHour(hourKey);
+            }
         }
     });
-    // If any weird keys (like "_2"), keep them
+    Object.keys(result).forEach(hourKey => {
+        if (result[hourKey].hour === undefined) {
+            result[hourKey].hour = keyToHour(hourKey);
+        }
+    });
     return {
         ...firestoreData,
         shift,
@@ -223,12 +257,25 @@ function mergeWithEmptyShift(shift, dateString, firestoreData) {
     };
 }
 
+// Order by shift hours for display: respects shift3 ordering
+function normalizeHourlyDataWithKeys(hourlyData, shift) {
+    if (!hourlyData || typeof hourlyData !== "object") return [];
+    const hoursOrder = getShiftHours(shift);
+    const arr = Object.entries(hourlyData)
+        .map(([key, value]) => ({ ...value, _key: key, hour: value.hour !== undefined ? value.hour : keyToHour(key) }));
+    return arr.sort((a, b) => {
+        const ai = hoursOrder.indexOf(a.hour);
+        const bi = hoursOrder.indexOf(b.hour);
+        return ai - bi;
+    });
+}
+
 function renderStringerCards() {
     let html = '';
     for (let i = 1; i <= 6; i++) {
         html += `
-        <div class="p-3 bg-gray-50 rounded-lg border">
-            <h4 class="font-bold text-md text-gray-700 mb-2">Stringer #${i}</h4>
+        <div class="p-3 stringer-card rounded-lg border">
+            <h4 class="font-bold text-md text-blue-800 mb-2">Stringer #${i}</h4>
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label for="live-ok-s${i}" class="text-sm text-gray-600">OK</label>
@@ -244,6 +291,74 @@ function renderStringerCards() {
     DOM.stringerGrid.innerHTML = html;
 }
 
+// --- Summary Analysis ---
+function getShiftSummary(data) {
+    const hourlyArray = normalizeHourlyDataWithKeys(data.hourlyData, data.shift);
+    const stringerStats = [];
+    let totalModules = 0;
+    for (let s = 1; s <= 6; s++) {
+        let totalOk = 0, totalNg = 0;
+        hourlyArray.forEach(hd => {
+            totalOk += hd.stringers[s]?.ok || 0;
+            totalNg += hd.stringers[s]?.ng || 0;
+        });
+        const modules = Math.floor(totalOk / 12);
+        stringerStats.push({
+            stringer: s,
+            modules,
+            ng: totalNg,
+            ngRate: (totalNg / (totalOk + totalNg)) * 100 || 0
+        });
+        totalModules += modules;
+    }
+    // Highest-performing stringer
+    const best = stringerStats.reduce((a, b) => a.modules > b.modules ? a : b);
+    // Hour with most NG
+    let maxNgHour = null, maxNg = -1;
+    hourlyArray.forEach(hd => {
+        const totalNg = Object.values(hd.stringers).reduce((sum, s) => sum + (s.ng || 0), 0);
+        if (totalNg > maxNg) {
+            maxNg = totalNg;
+            maxNgHour = hd.hour;
+        }
+    });
+    // Overall NG rate
+    const totalOk = stringerStats.reduce((sum, s) => sum + (s.modules * 12), 0);
+    const totalNg = stringerStats.reduce((sum, s) => sum + s.ng, 0);
+    const overallNgRate = (totalNg / (totalOk + totalNg)) * 100 || 0;
+    return { stringerStats, best, maxNgHour, maxNg, overallNgRate, totalOk, totalNg, totalModules };
+}
+
+function renderSummary(data) {
+    const summary = getShiftSummary(data);
+    const bestStr = `#${summary.best.stringer}: ${summary.best.modules} modules, ${summary.best.ng} NG`;
+    const ngHourStr = summary.maxNgHour !== null ? `${summary.maxNgHour}:00 (${summary.maxNg} NG)` : "N/A";
+    DOM.summarySection.innerHTML = `
+      <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
+        <div class="text-gray-600 font-medium mb-1">Total Modules in Shift</div>
+        <div class="text-2xl font-bold text-green-700 mb-1">${summary.totalModules}</div>
+      </div>
+      <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
+        <div class="text-gray-600 font-medium mb-1">Highest Performing Stringer</div>
+        <div class="text-2xl font-bold text-blue-800 mb-1">${bestStr}</div>
+      </div>
+      <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
+        <div class="text-gray-600 font-medium mb-1">Hour with Most NG</div>
+        <div class="text-2xl font-bold text-red-700 mb-1">${ngHourStr}</div>
+      </div>
+      <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
+        <div class="text-gray-600 font-medium mb-1">Shift NG Rate</div>
+        <div class="text-2xl font-bold text-yellow-600 mb-1">${summary.overallNgRate.toFixed(2)}%</div>
+      </div>
+      <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
+        <div class="text-gray-600 font-medium mb-1">Total Strings</div>
+        <div class="text-2xl font-bold text-purple-700 mb-1">${summary.totalOk} OK / ${summary.totalNg} NG</div>
+      </div>
+    `;
+}
+
+// --- End Summary ---
+
 function updateUI(data) {
     if (!data || !data.hourlyData) {
         const shift = Number(DOM.shiftSelector.value);
@@ -253,6 +368,8 @@ function updateUI(data) {
     DOM.dashboardContent.classList.remove('hidden');
     DOM.messageArea.classList.add('hidden');
 
+    renderSummary(data);
+
     let totalOk = 0, totalNg = 0, cumulativeOk = 0;
     const now = new Date();
     const currentHour = now.getHours();
@@ -260,7 +377,7 @@ function updateUI(data) {
     const isCurrentShift = DOM.dateSelector.value === getShiftInfo(now).dateString && Number(DOM.shiftSelector.value) === getShiftInfo(now).shift;
     const currentHourIndex = shiftHours.findIndex(h => h === currentHour);
 
-    const hourlyArray = normalizeHourlyDataWithKeys(data.hourlyData);
+    const hourlyArray = normalizeHourlyDataWithKeys(data.hourlyData, data.shift);
     hourlyArray.forEach((hourData) => {
         let hourlyOk = 0;
         Object.values(hourData.stringers).forEach(s => {
@@ -275,11 +392,6 @@ function updateUI(data) {
         }
     });
 
-    DOM.totalModules.textContent = Math.floor(totalOk / 12);
-    DOM.modulesTillNow.textContent = Math.floor(cumulativeOk / 12);
-    DOM.overallPerformance.textContent = (totalOk + totalNg) > 0 ? ((totalOk / (totalOk + totalNg)) * 100).toFixed(1) : '0.0';
-    DOM.totalStrings.textContent = `${totalOk} / ${totalNg}`;
-
     DOM.submitButton.disabled = !isCurrentShift || currentHourIndex === -1;
 
     for (let i = 1; i <= 6; i++) {
@@ -292,6 +404,7 @@ function updateUI(data) {
     updateProductionChart(data);
     updateStringerChart(data);
     renderHourlyTable(data);
+    updateStringerHourlyGraphs(data);
 }
 
 function initializeCharts() {
@@ -333,10 +446,56 @@ function initializeCharts() {
             }
         }
     });
+    // Initialize stringer hourly bar+trend charts
+    for (let s = 1; s <= 6; s++) {
+        const ctx = document.getElementById(`stringerGraph${s}`).getContext('2d');
+        window[`stringerHourlyChart${s}`] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Modules',
+                        data: [],
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 6,
+                        barPercentage: 0.5, // less wide bars
+                        categoryPercentage: 0.5,
+                        yAxisID: 'y',
+                        type: 'bar',
+                        order: 2
+                    },
+                    {
+                        label: 'NG Trend',
+                        data: [],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239,68,68,0.15)',
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#ef4444',
+                        yAxisID: 'y',
+                        type: 'line',
+                        order: 1
+                    }
+                ]
+            },
+            options: {
+                plugins: {
+                    legend: { display: true },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Hour' } },
+                    y: { beginAtZero: true, title: { display: true, text: 'Modules / NG' } }
+                }
+            }
+        });
+    }
 }
 
 function updateProductionChart(data) {
-    const hourlyArray = normalizeHourlyDataWithKeys(data.hourlyData);
+    const hourlyArray = normalizeHourlyDataWithKeys(data.hourlyData, data.shift);
 
     const hourlyTotals = hourlyArray.map(hourData => { 
         let hourlyOk = 0, hourlyNg = 0;
@@ -362,7 +521,7 @@ function updateProductionChart(data) {
 
 function updateStringerChart(data) {
     const stringerTotals = Array.from({ length: 6 }, () => ({ ok: 0, ng: 0 }));
-    const hourlyArray = normalizeHourlyDataWithKeys(data.hourlyData);
+    const hourlyArray = normalizeHourlyDataWithKeys(data.hourlyData, data.shift);
     hourlyArray.forEach(hourData => {
         for (let i = 1; i <= 6; i++) {
             stringerTotals[i - 1].ok += hourData.stringers[i]?.ok || 0;
@@ -391,10 +550,11 @@ function renderHourlyTable(data) {
     }
     tableHtml += `<th></th></tr></thead><tbody>`;
 
-    const hourlyArray = normalizeHourlyDataWithKeys(data.hourlyData);
+    const hourlyArray = normalizeHourlyDataWithKeys(data.hourlyData, data.shift);
     hourlyArray.forEach((hourData, hourIndex) => {
+        const hourLabel = (hourData.hour !== undefined ? hourData.hour : keyToHour(hourData._key)) + ":00";
         tableHtml += `<tr>
-            <td class="font-semibold">${hourData.hour}:00</td>`;
+            <td class="font-semibold">${hourLabel}</td>`;
         for (let i = 1; i <= 6; i++) {
             tableHtml += `<td>${hourData.stringers[i]?.ok || 0}</td><td>${hourData.stringers[i]?.ng || 0}</td>`;
         }
@@ -417,16 +577,17 @@ function renderHourlyTable(data) {
 }
 
 function openEditModal(hourIndex, hourKey) {
-    const hourlyArray = normalizeHourlyDataWithKeys(currentProductionData.hourlyData);
+    const hourlyArray = normalizeHourlyDataWithKeys(currentProductionData.hourlyData, currentProductionData.shift);
     const hourData = hourlyArray[hourIndex];
-    DOM.modalTitle.textContent = `Editing Data for ${hourData.hour}:00`;
+    const hourLabel = (hourData.hour !== undefined ? hourData.hour : keyToHour(hourData._key)) + ":00";
+    DOM.modalTitle.textContent = `Editing Data for ${hourLabel}`;
 
     let modalHtml = '<div class="modal-grid">';
     for (let i = 1; i <= 6; i++) {
         const sData = hourData.stringers[i];
         modalHtml += `
-        <div class="p-3 bg-gray-50 rounded-lg border">
-            <h4 class="font-bold text-md text-gray-700 mb-2">Stringer #${i}</h4>
+        <div class="p-3 stringer-card rounded-lg border">
+            <h4 class="font-bold text-md text-blue-800 mb-2">Stringer #${i}</h4>
             <div class="space-y-2">
                 <div>
                     <label class="text-sm text-gray-600">OK</label>
@@ -454,6 +615,7 @@ function openEditModal(hourIndex, hourKey) {
             await updateHourData(hourKey, i, 'ng', ngValue);
         }
         DOM.editModal.classList.add('hidden');
+        listenToShiftData();
     };
 }
 
@@ -470,7 +632,6 @@ async function updateHourData(hourKey, stringerId, type, value) {
         await updateDoc(docRef, {
             [updatePath]: numValue
         });
-        // Don't reload until all done!
     } catch (error) {
         if (error.code === 'not-found') {
             await initializeShiftData(shift, dateString);
@@ -497,7 +658,7 @@ async function handleSubmit() {
         return;
     }
 
-    const hourlyArray = normalizeHourlyDataWithKeys(currentProductionData.hourlyData);
+    const hourlyArray = normalizeHourlyDataWithKeys(currentProductionData.hourlyData, currentProductionData.shift);
     const hourObj = hourlyArray.find(hd => Number(hd.hour) === currentHour);
     const hourKey = hourObj ? hourObj._key : null;
 
@@ -589,6 +750,21 @@ function listenToShiftData() {
     });
 }
 
+function updateStringerHourlyGraphs(data) {
+    const hourlyArray = normalizeHourlyDataWithKeys(data.hourlyData, data.shift);
+    for (let s = 1; s <= 6; s++) {
+        const hours = hourlyArray.map(hd => hd.hour !== undefined ? hd.hour : keyToHour(hd._key));
+        const modules = hourlyArray.map(hd => Math.floor((hd.stringers[s]?.ok || 0) / 12));
+        const ngs = hourlyArray.map(hd => hd.stringers[s]?.ng || 0);
+
+        if (!window[`stringerHourlyChart${s}`]) continue;
+        window[`stringerHourlyChart${s}`].data.labels = hours.map(h => `${h}:00`);
+        window[`stringerHourlyChart${s}`].data.datasets[0].data = modules; // Bar for modules
+        window[`stringerHourlyChart${s}`].data.datasets[1].data = ngs;     // Line for NG
+        window[`stringerHourlyChart${s}`].update();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -621,7 +797,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const activePoints = productionChart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, false);
         if (activePoints.length > 0) {
             const clickedIndex = activePoints[0].index;
-            const hourlyArray = normalizeHourlyDataWithKeys(currentProductionData.hourlyData);
+            const hourlyArray = normalizeHourlyDataWithKeys(currentProductionData.hourlyData, currentProductionData.shift);
             const hourKey = hourlyArray[clickedIndex]._key;
             openEditModal(clickedIndex, hourKey);
         }
