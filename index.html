@@ -335,7 +335,7 @@ function getShiftSummary(data) {
             totalNg += hd.stringers[s]?.ng || 0;
             totalBreakdown += hd.stringers[s]?.breakdownTime || 0;
         });
-        const modules = Math.floor(totalOk / 12);
+        const modules = Math.round(totalOk / 12);
         stringerStats.push({
             stringer: s,
             modules,
@@ -448,7 +448,7 @@ function initializeCharts() {
                     anchor: 'end', align: 'bottom', font: { weight: 'bold', size: 14 }, color: '#FFFFFF',
                     formatter: (value, context) => {
                         if (context.dataset.label === 'OK Strings') {
-                            const modules = Math.floor(value / 12);
+                            const modules = Math.round(value / 12);
                             return modules > 0 ? modules : '';
                         }
                         return '';
@@ -487,15 +487,53 @@ function initializeCharts() {
     });
 
     // NEW: Initialize Breakdown Reason Chart
-    const breakdownCtx = DOM.breakdownReasonChartCanvas.getContext('2d');
-    breakdownReasonChart = new Chart(breakdownCtx, {
-        type: 'pie',
-        data: { labels: [], datasets: [{ data: [], backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'] }] },
-        options: {
-            ...commonOptions,
-            plugins: { ...commonOptions.plugins, legend: { position: 'right' } }
-        }
-    });
+   const breakdownCtx = DOM.breakdownReasonChartCanvas.getContext('2d');
+
+const allGoodPlugin = {
+  id: 'allGoodMessage',
+  afterDraw: (chart) => {
+    const data = chart.data.datasets[0].data;
+    const total = data.reduce((a, b) => a + b, 0);
+
+    if (total === 0) {
+      const { ctx, chartArea } = chart;
+      ctx.save();
+      ctx.font = 'bold 22px Arial';
+      ctx.fillStyle = '#22c55e'; // nice green
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('👍 All Good _ No Breakdwon', (chartArea.left + chartArea.right) / 2, (chartArea.top + chartArea.bottom) / 2);
+      ctx.restore();
+    }
+  }
+};
+
+breakdownReasonChart = new Chart(breakdownCtx, {
+  type: 'pie',
+  data: {
+    labels: [],
+    datasets: [{
+      data: [],
+      backgroundColor: [
+        '#ef4444', // red
+        '#f97316', // orange
+        '#eab308', // yellow
+        '#22c55e', // green
+        '#3b82f6', // blue
+        '#8b5cf6'  // purple
+      ]
+    }]
+  },
+  options: {
+    ...commonOptions,
+    plugins: { 
+      ...commonOptions.plugins,
+      legend: { position: 'right' }
+    }
+  },
+  plugins: [allGoodPlugin] // 👈 attach our plugin
+});
+
 
     for (let s = 1; s <= 6; s++) {
         const ctx = document.getElementById(`stringerGraph${s}`).getContext('2d');
@@ -771,7 +809,7 @@ function updateStringerHourlyGraphs(data) {
         if (!window[`stringerHourlyChart${s}`]) continue;
         const chart = window[`stringerHourlyChart${s}`];
         chart.data.labels = hourlyArray.map(hd => `${hd.hour}:00`);
-        chart.data.datasets[0].data = hourlyArray.map(hd => Math.floor((hd.stringers[s]?.ok || 0) / 12));
+        chart.data.datasets[0].data = hourlyArray.map(hd => Math.round((hd.stringers[s]?.ok || 0) / 12));
         chart.data.datasets[1].data = hourlyArray.map(hd => hd.stringers[s]?.ng || 0);
         chart.update();
     }
