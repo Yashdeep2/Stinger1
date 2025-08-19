@@ -185,19 +185,14 @@ function updateClock() {
 
 function getShiftInfo(date) {
     const hour = date.getHours();
-    const minutes = date.getMinutes();
     let shift;
-   if ((hour > 6 || (hour === 6 && minutes >= 30)) && (hour < 14 || (hour === 14 && minutes <= 30))) {
-    shift = 1;
-  }
-  // B shift: 14:30 - 22:30
-  else if ((hour > 14 || (hour === 14 && minutes > 30)) && (hour < 22 || (hour === 22 && minutes <= 30))) {
-    shift = 2;
-  }
-  // C shift: 22:30 - 06:30
-  else {
-    shift = 3;
-  }
+    if (hour > 6 && hour <= 14) {
+        shift = 1;
+    } else if (hour > 14 && hour <= 22) {
+        shift = 2;
+    } else {
+        shift = 3;
+    }
     const dateString = date.toISOString().split('T')[0];
     return { shift, dateString };
 }
@@ -333,6 +328,11 @@ function getShiftSummary(data) {
     const hourlyArray = normalizeHourlyDataWithKeys(data.hourlyData, data.shift);
     const stringerStats = [];
     let totalModules = 0, totalBreakdownTime = 0;
+
+    // New accumulators for Line 1 & Line 2
+    let line1Modules = 0;
+    let line2Modules = 0;
+
     for (let s = 1; s <= 6; s++) {
         let totalOk = 0, totalNg = 0, totalBreakdown = 0;
         hourlyArray.forEach(hd => {
@@ -340,6 +340,7 @@ function getShiftSummary(data) {
             totalNg += hd.stringers[s]?.ng || 0;
             totalBreakdown += hd.stringers[s]?.breakdownTime || 0;
         });
+
         const modules = Math.round(totalOk / 12);
         stringerStats.push({
             stringer: s,
@@ -347,54 +348,84 @@ function getShiftSummary(data) {
             ng: totalNg,
             ngRate: (totalNg / (totalOk + totalNg)) * 100 || 0
         });
+
         totalModules += modules;
         totalBreakdownTime += totalBreakdown;
-    }
-    const best = stringerStats.reduce((a, b) => a.modules > b.modules ? a : b, {stringer: 'N/A', modules: 0, ng: 0});
-    let maxNgHour = null, maxNg = -1;
-    hourlyArray.forEach(hd => {
-        const totalNg = Object.values(hd.stringers).reduce((sum, s) => sum + (s.ng || 0), 0);
-        if (totalNg > maxNg) {
-            maxNg = totalNg;
-            maxNgHour = hd.hour;
+
+        if (s <= 3) {
+            line1Modules += modules;
+        } else {
+            line2Modules += modules;
         }
-    });
+    }
+
+    const best = stringerStats.reduce((a, b) => a.modules > b.modules ? a : b, {stringer: 'N/A', modules: 0, ng: 0});
+    const worst = stringerStats.reduce((a, b) => a.ngRate > b.ngRate ? a : b, {stringer: 'N/A', ngRate: 0});
+
+
+
     const totalOk = stringerStats.reduce((sum, s) => sum + (s.modules * 12), 0);
     const totalNg = stringerStats.reduce((sum, s) => sum + s.ng, 0);
     const overallNgRate = (totalNg / (totalOk + totalNg)) * 100 || 0;
-    return { stringerStats, best, maxNgHour, maxNg, overallNgRate, totalOk, totalNg, totalModules, totalBreakdownTime };
+
+    return { 
+        stringerStats, 
+        best, 
+        worst, 
+        overallNgRate, 
+        totalOk, 
+        totalNg, 
+        totalModules, 
+        totalBreakdownTime,
+
+        // New values
+        line1Modules,
+        line2Modules,
+        modulesDisplay: `${totalModules} _ ${line1Modules} | ${line2Modules}`
+    };
 }
+
 
 function renderSummary(data) {
     const summary = getShiftSummary(data);
     const bestStr = `#${summary.best.stringer}: ${summary.best.modules} modules, ${summary.best.ng} NG`;
     const ngHourStr = summary.maxNgHour !== null ? `${summary.maxNgHour}:00 (${summary.maxNg} NG)` : "N/A";
     DOM.summarySection.innerHTML = `
-      <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
-        <div class="text-gray-600 font-medium mb-1 text-center text-sm">Total Modules</div>
-        <div class="text-2xl font-bold text-green-700">${summary.totalModules}</div>
-      </div>
-      <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
-        <div class="text-gray-600 font-medium mb-1 text-center text-sm">Best Stringer</div>
-        <div class="text-xl font-bold text-blue-800 text-center">${bestStr}</div>
-      </div>
-      <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
-        <div class="text-gray-600 font-medium mb-1 text-center text-sm">Highest NG Hour</div>
-        <div class="text-2xl font-bold text-red-700">${ngHourStr}</div>
-      </div>
-      <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
-        <div class="text-gray-600 font-medium mb-1 text-center text-sm">Shift NG Rate</div>
-        <div class="text-2xl font-bold text-yellow-600">${summary.overallNgRate.toFixed(2)}%</div>
-      </div>
-      <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
-        <div class="text-gray-600 font-medium mb-1 text-center text-sm">Total Strings</div>
-        <div class="text-xl font-bold text-purple-700">${summary.totalOk} OK / ${summary.totalNg} NG</div>
-      </div>
-      <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
-        <div class="text-gray-600 font-medium mb-1 text-center text-sm">Total Breakdown</div>
-        <div class="text-2xl font-bold text-orange-600">${summary.totalBreakdownTime} mins</div>
-      </div>
-    `;
+  <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
+    <div class="text-gray-600 font-medium mb-1 text-center text-sm">Total Modules</div>
+    <div class="text-2xl font-bold text-green-700">${summary.totalModules}</div>
+    <div class="flex space-x-2 mt-1 text-sm">
+      <span class="text-blue-600">Line 1: ${summary.line1Modules}</span>
+      <span class="text-purple-600">Line 2: ${summary.line2Modules}</span>
+    </div>
+  </div>
+
+  <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
+    <div class="text-gray-600 font-medium mb-1 text-center text-sm">Best Stringer</div>
+    <div class="text-xl font-bold text-blue-800 text-center">${bestStr}</div>
+  </div>
+
+    <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
+    <div class="text-gray-600 font-medium mb-1 text-center text-sm">Worst Stringer</div>
+    <div class="text-xl font-bold text-red-700">#${summary.worst.stringer} (${summary.worst.ngRate.toFixed(1)}% NG)</div>
+    </div>
+
+  <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
+    <div class="text-gray-600 font-medium mb-1 text-center text-sm">Shift NG Rate</div>
+    <div class="text-2xl font-bold text-yellow-600">${summary.overallNgRate.toFixed(2)}%</div>
+  </div>
+
+  <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
+    <div class="text-gray-600 font-medium mb-1 text-center text-sm">Total Strings</div>
+    <div class="text-xl font-bold text-purple-700">${summary.totalOk} OK / ${summary.totalNg} NG</div>
+  </div>
+
+  <div class="summary-card rounded-lg p-4 flex flex-col items-center shadow border">
+    <div class="text-gray-600 font-medium mb-1 text-center text-sm">Total Breakdown</div>
+    <div class="text-2xl font-bold text-orange-600">${summary.totalBreakdownTime} mins</div>
+  </div>
+`;
+
 }
 
 function updateUI(data) {
@@ -492,7 +523,7 @@ function initializeCharts() {
     });
 
     // NEW: Initialize Breakdown Reason Chart
-   const breakdownCtx = DOM.breakdownReasonChartCanvas.getContext('2d');
+  const breakdownCtx = DOM.breakdownReasonChartCanvas.getContext('2d');
 
 const allGoodPlugin = {
   id: 'allGoodMessage',
