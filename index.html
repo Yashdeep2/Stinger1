@@ -604,7 +604,7 @@ function updateProductionChart(data) {
         { label: 'OK Strings', data: hourlyTotals.map(d => d.OK), backgroundColor: '#22c55e', stack: 'stack0' },
         { label: 'NG Strings', data: hourlyTotals.map(d => d.NG), backgroundColor: '#ef4444', stack: 'stack0' }
     ];
-     productionChart.options.scales.y = {
+       productionChart.options.scales.y = {
         display: false,
         grid: {
             drawTicks: false,
