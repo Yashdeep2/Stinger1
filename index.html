@@ -169,6 +169,25 @@ const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 const appId = 'production-dashboard-html-app';
 
+import { signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+// Use redirect on mobile instead of popup
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+    await signInWithRedirect(auth, provider);
+  } else {
+    await signInWithPopup(auth, provider);
+  }
+});
+
+// Handle redirect result after login
+getRedirectResult(auth).then((result) => {
+  if (result?.user) {
+    console.log("Signed in via redirect:", result.user.email);
+  }
+}).catch((err) => {
+  console.error("Redirect login error:", err.message);
+});
 // --- Login with Google ---
 document.getElementById("loginBtn").addEventListener("click", async () => {
   try {
