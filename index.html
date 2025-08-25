@@ -44,8 +44,7 @@
                 </button>
             </div>
         </header>
-        <button id="loginBtn">Login with Google</button>
-        <button id="logoutBtn">Logout</button>
+
         <section id="summary-section" class="mb-6 grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-4">
             </section>
 
@@ -131,99 +130,25 @@
             <div id="modal-body" class="p-6 overflow-y-auto"></div>
         </div>
     </div>
-    
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { 
-  getAuth, 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  onAuthStateChanged, 
-  signOut 
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { 
-  getFirestore, 
-  doc, 
-  setDoc, 
-  updateDoc, 
-  onSnapshot, 
-  serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, setDoc, onSnapshot, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔹 Your Firebase Config
 const firebaseConfig = {
-    
-        apiKey: "AIzaSyA2FZJqQe3wC6o9gAQpB1rVIWeWn_CHlmY",
-        authDomain: "stringer-5536f.firebaseapp.com",
-        databaseURL: "https://stringer-5536f-default-rtdb.firebaseio.com",
-        projectId: "stringer-5536f",
-        storageBucket: "stringer-5536f.appspot.com",
-        messagingSenderId: "1040463002354",
-        appId: "1:1040463002354:web:78faa9f323328d965b2e6b"
-    };
-   // your firebase config here
+    apiKey: "AIzaSyA2FZJqQe3wC6o9gAQpB1rVIWeWn_CHlmY",
+    authDomain: "stringer-5536f.firebaseapp.com",
+    databaseURL: "https://stringer-5536f-default-rtdb.firebaseio.com",
+    projectId: "stringer-5536f",
+    storageBucket: "stringer-5536f.appspot.com",
+    messagingSenderId: "1040463002354",
+    appId: "1:1040463002354:web:78faa9f323328d965b2e6b"
+};
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
 const appId = 'production-dashboard-html-app';
-
-import { signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-// Use redirect on mobile instead of popup
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  if (/Mobi|Android/i.test(navigator.userAgent)) {
-    await signInWithRedirect(auth, provider);
-  } else {
-    await signInWithPopup(auth, provider);
-  }
-});
-
-// Handle redirect result after login
-getRedirectResult(auth).then((result) => {
-  if (result?.user) {
-    console.log("Signed in via redirect:", result.user.email);
-  }
-}).catch((err) => {
-  console.error("Redirect login error:", err.message);
-});
-// --- Login with Google ---
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    console.log("Signed in as:", result.user.email);
-    alert("Signed in as: " + result.user.email);
-  } catch (err) {
-    console.error("Login error:", err.message);
-    alert("Login failed: " + err.message);
-  }
-});
-
-// --- Logout ---
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  try {
-    await signOut(auth);
-    console.log("Signed out");
-    alert("Signed out");
-  } catch (err) {
-    console.error("Logout error:", err.message);
-  }
-});
-
-// --- Track login state ---
-onAuthStateChanged(auth, (user) => {
-  const form = document.getElementById("edit-form");
-  if (user) {
-    console.log("User logged in:", user.email);
-    if (form) form.style.display = "block";   // show edit form
-  } else {
-    console.log("No user logged in");
-    if (form) form.style.display = "none";    // hide edit form
-  }
-});
-
-// --- Example: your existing Firestore save/update still works ---
 
 let productionChart, stringerChart, breakdownReasonChart, unsubscribe, loadingTimeout;
 let currentProductionData = null;
@@ -679,14 +604,14 @@ function updateProductionChart(data) {
         { label: 'OK Strings', data: hourlyTotals.map(d => d.OK), backgroundColor: '#22c55e', stack: 'stack0' },
         { label: 'NG Strings', data: hourlyTotals.map(d => d.NG), backgroundColor: '#ef4444', stack: 'stack0' }
     ];
-        productionChart.options.scales.y = {
+       productionChart.options.scales.y = {
         display: false,
         grid: {
             drawTicks: false,
             drawBorder: false,
             drawOnChartArea: false
         }
-    };
+       };
     productionChart.update();
 }
 
