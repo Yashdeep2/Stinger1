@@ -1,0 +1,176 @@
+/* === Final Polished UI Styles v3.0 === */
+
+/* 1. Global Styles & Softer Color Palette */
+:root {
+    --bg-main: #f7f8fa;
+    --bg-card: #ffffff;
+    --text-primary: #1a202c;
+    --text-secondary: #718096;
+    --border-color: #e2e8f0;
+    --accent-blue: #4f46e5;
+    --accent-red: #ef4444;
+    --accent-green: #22c55e;
+    --accent-amber: #f59e0b;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+}
+
+/* 2. Header & Controls */
+header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1.5rem;
+}
+
+#date-selector, #shift-selector {
+    font-weight: 500;
+}
+
+/* 3. KPI Card Redesign - Final Layout */
+/* In style.css */
+
+/* 3. KPI Card Redesign - Final Clearer Layout */
+.kpi-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.06);
+}
+
+.kpi-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.kpi-card-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 9999px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+/* Custom icon backgrounds */
+.icon-bg-blue { background-color: #e0e7ff; color: #4f46e5; }
+.icon-bg-violet { background-color: #ede9fe; color: #7c3aed; }
+.icon-bg-green { background-color: #dcfce7; color: #22c55e; }
+.icon-bg-red { background-color: #fee2e2; color: #ef4444; }
+.icon-bg-amber { background-color: #fef3c7; color: #f59e0b; }
+.icon-bg-sky { background-color: #e0f2fe; color: #0ea5e9; }
+
+/* FIX: New styles for a clear vertical layout */
+.kpi-card-value {
+    font-size: 3rem;  /* Large, prominent number */
+    font-weight: 700;
+    line-height: 1.1;
+    margin-top: 1rem;
+    flex-grow: 1; /* Pushes the footer down */
+    display: flex;
+    align-items: center; /* Vertically centers the number */
+}
+
+.kpi-card-footer {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+/* Assign colors to specific values */
+.kpi-value-main { color: var(--accent-blue); }
+.kpi-value-good { color: var(--accent-green); }
+.kpi-value-bad { color: var(--accent-red); }
+.kpi-value-warn { color: var(--accent-amber); }
+.kpi-value-neutral { color: var(--text-primary); }
+/* 4. Chart & Data Table Styling */
+.chart-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+}
+.chart-container {
+    height: 350px;
+    position: relative;
+    flex-grow: 1;
+}
+
+/* Modern Data Table Design */
+.table-container {
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+}
+.details-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.details-table thead th {
+    background-color: #f8fafc;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 0.75rem 1rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.details-table tbody td {
+    padding: 0.75rem 1rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+}
+.details-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.details-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* 5. Data Entry & Modal Styling */
+.stringer-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+}
+.stringer-card input, .stringer-card select {
+    background-color: #f8fafc;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.stringer-card input:focus, .stringer-card select:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    outline: none;
+    background-color: white;
+}
+
+/* 6. General Cleanup */
+.skeleton { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; background-color: #e2e8f0; border-radius: 0.5rem; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.cell-good { color: var(--accent-green); font-weight: 600; }
+.cell-warn { color: var(--accent-amber); font-weight: 600; }
+.cell-danger { color: var(--accent-red); font-weight: 600; }
