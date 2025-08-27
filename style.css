@@ -119,6 +119,7 @@ header {
     border-radius: 1rem;
     overflow: hidden;
     box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+    overflow-x: auto;
 }
 .details-table {
     width: 100%;
@@ -173,4 +174,5 @@ header {
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 .cell-good { color: var(--accent-green); font-weight: 600; }
 .cell-warn { color: var(--accent-amber); font-weight: 600; }
+
 .cell-danger { color: var(--accent-red); font-weight: 600; }
