@@ -20,7 +20,13 @@ const appId = 'production-dashboard-html-app';
 const AUTHORIZED_USERS = [
     'yashdeep242002@gmail.com',
     'yashdeep.tyagi@avaada.com',
-    'abhishek.yadav2@avaada.com'
+    'abhishek.yadav2@avaada.com',
+    'dharmendra.maurya@avaada.com',
+    'v.siba@avaada.com',
+    'pappu.kumar@avaada.com',
+   	'rajesh.ray@avaada.com',
+    'shivam.sharma@avaada.com'
+    
 ];
 
 let isDashboardInitialized = false;
@@ -893,4 +899,5 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 5000);
     });
+
 });
