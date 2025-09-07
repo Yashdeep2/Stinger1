@@ -25,7 +25,8 @@ const AUTHORIZED_USERS = [
     'v.siba@avaada.com',
     'pappu.kumar@avaada.com',
    	'rajesh.ray@avaada.com',
-    'shivam.sharma@avaada.com'
+    'shivam.sharma@avaada.com',
+    'control.dadriproduction@avaada.com'
     
 ];
 
@@ -901,3 +902,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 });
+
