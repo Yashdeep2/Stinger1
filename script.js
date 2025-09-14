@@ -341,7 +341,7 @@ function renderSummary(data) {
         </div>
       </div>
        <div class="kpi-card">
-        <div class="kpi-card-header"><div class="kpi-card-icon icon-bg-red">${icons.worst}</div><span>Worst Stringer</span></div>
+        <div class="kpi-card-header"><div class="kpi-card-icon icon-bg-red">${icons.worst}</div><span>Inferior Stringer</span></div>
         <div class="kpi-card-body">
             <div class="kpi-card-value kpi-value-bad">#${summary.worst.stringer}</div>
             <div class="kpi-card-footer">${summary.worst.ngRate.toFixed(1)}% NG</div>
@@ -902,4 +902,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 });
+
 
